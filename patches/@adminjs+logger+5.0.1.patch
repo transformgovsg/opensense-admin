@@ -1,0 +1,40 @@
+diff --git a/node_modules/@adminjs/logger/lib/log.action.js b/node_modules/@adminjs/logger/lib/log.action.js
+index 05033a0..ffa63ea 100644
+--- a/node_modules/@adminjs/logger/lib/log.action.js
++++ b/node_modules/@adminjs/logger/lib/log.action.js
+@@ -11,7 +11,7 @@ export const rememberInitialRecord = async (request, context) => {
+         }
+         else {
+             context.initialRecords = request.query?.recordIds
+-                ? await context.resource.findMany(request.query.recordIds.split(','))
++                ? await context.resource.findMany(request.query.recordIds.split(','), context)
+                 : [];
+         }
+         return request;
+@@ -20,7 +20,7 @@ export const rememberInitialRecord = async (request, context) => {
+         context.initialRecords = [...records];
+     }
+     const id = context.record?.id?.() ?? request.params.recordId;
+-    context.initialRecord = id ? await context.resource.findOne(id) : {};
++    context.initialRecord = id ? await context.resource.findOne(id, context) : {};
+     return request;
+ };
+ const getRecordTitle = (modifiedRecord, currentAdmin) => {
+@@ -110,7 +110,7 @@ const createPersistLogAction = (request, context, options) => async ({ recordId,
+         if (!adminId) {
+             console.error(new AppError(MISSING_USER_ID_ERROR));
+         }
+-        const modifiedRecord = record ?? (await ModifiedResource.findOne(String(recordId))) ?? null;
++        const modifiedRecord = record ?? (await ModifiedResource.findOne(String(recordId), context)) ?? null;
+         const newParamsToCompare = ['delete', 'bulkDelete'].includes(action.name)
+             ? {}
+             : flat.flatten(JSON.parse(JSON.stringify(modifiedRecord?.params ?? {})));
+@@ -124,7 +124,7 @@ const createPersistLogAction = (request, context, options) => async ({ recordId,
+                 ? JSON.parse(JSON.stringify(initialRecord.params))
+                 : {}))),
+         };
+-        await Log.create(logParams);
++        await Log.create(logParams, context);
+     }
+     catch (e) {
+         /* The action should not fail nor display a message to the end-user

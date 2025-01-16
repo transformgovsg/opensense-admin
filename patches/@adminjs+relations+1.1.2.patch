@@ -1,0 +1,338 @@
+diff --git a/node_modules/@adminjs/relations/lib/actions/many-to-many/add-many-to-many-relation.handler.js b/node_modules/@adminjs/relations/lib/actions/many-to-many/add-many-to-many-relation.handler.js
+index 51259c6..84a4b9e 100644
+--- a/node_modules/@adminjs/relations/lib/actions/many-to-many/add-many-to-many-relation.handler.js
++++ b/node_modules/@adminjs/relations/lib/actions/many-to-many/add-many-to-many-relation.handler.js
+@@ -1 +1 @@
+-import{AppError,Filter,flat}from"adminjs";import{Messages}from"../../index.js";export const addManyToManyRelationHandler=a=>async(b,c,d)=>{if("get"===b.method)return c;const{_admin:e,record:f,resource:g}=d,{query:h,payload:i={}}=b,j=flat.unflatten(h||{}),{relation:k}=j,{relations:l}=a,m=l[k],{junction:n}=m;if(!n)throw new AppError(Messages.JunctionMissing);const o=e.findResource(n.throughResourceId),[p]=await o.find(new Filter({[n.joinKey]:d.record?.id(),[n.inverseJoinKey]:i.targetId},o),{limit:1,offset:0,sort:{sortBy:n.joinKey,direction:"asc"}});if(p)throw new AppError(Messages.ManyToManyRelationAlreadyExists);return await o.create({[n.joinKey]:f?.id(),[n.inverseJoinKey]:i.targetId}),{record:f?.toJSON(d.currentAdmin),notice:{type:"success",message:Messages.RelationSuccessfullyAdded,resourceId:g.id()}}};
+\ No newline at end of file
++import{AppError,Filter,flat}from"adminjs";import{Messages}from"../../index.js";export const addManyToManyRelationHandler=a=>async(b,c,d)=>{if("get"===b.method)return c;const{_admin:e,record:f,resource:g}=d,{query:h,payload:i={}}=b,j=flat.unflatten(h||{}),{relation:k}=j,{relations:l}=a,m=l[k],{junction:n}=m;if(!n)throw new AppError(Messages.JunctionMissing);const o=e.findResource(n.throughResourceId),[p]=await o.find(new Filter({[n.joinKey]:d.record?.id(),[n.inverseJoinKey]:i.targetId},o),{limit:1,offset:0,sort:{sortBy:n.joinKey,direction:"asc"}},d);if(p)throw new AppError(Messages.ManyToManyRelationAlreadyExists);return await o.create({[n.joinKey]:f?.id(),[n.inverseJoinKey]:i.targetId},d),{record:f?.toJSON(d.currentAdmin),notice:{type:"success",message:Messages.RelationSuccessfullyAdded,resourceId:g.id()}}};
+diff --git a/node_modules/@adminjs/relations/lib/actions/many-to-many/assign-many-to-many-relation.after.js b/node_modules/@adminjs/relations/lib/actions/many-to-many/assign-many-to-many-relation.after.js
+index 9d7060b..d4bdcfc 100644
+--- a/node_modules/@adminjs/relations/lib/actions/many-to-many/assign-many-to-many-relation.after.js
++++ b/node_modules/@adminjs/relations/lib/actions/many-to-many/assign-many-to-many-relation.after.js
+@@ -1 +1 @@
+-import{AppError}from"adminjs";import{Messages}from"../../constants/messages.js";export const assignManyToManyRelation=async(a,b,c)=>{if("post"!==b.method)return a;if(Object.keys(a.record?.errors??{}).length)return a;const{_admin:d,record:e}=c,f=b.query??{},{junctionResourceId:g,joinKey:h,inverseJoinKey:i}=f,j=f[h];if(!g||!h||!i||!j)return a;const k=d.findResource(g);if(!k)throw new AppError(Messages.JunctionResourceMissing,{junctionResourceId:g},{options:{junctionResourceId:g}});return await k.create({[h]:j,[i]:e?.id()??a.record.id}),a};
+\ No newline at end of file
++import{AppError}from"adminjs";import{Messages}from"../../constants/messages.js";export const assignManyToManyRelation=async(a,b,c)=>{if("post"!==b.method)return a;if(Object.keys(a.record?.errors??{}).length)return a;const{_admin:d,record:e}=c,f=b.query??{},{junctionResourceId:g,joinKey:h,inverseJoinKey:i}=f,j=f[h];if(!g||!h||!i||!j)return a;const k=d.findResource(g);if(!k)throw new AppError(Messages.JunctionResourceMissing,{junctionResourceId:g},{options:{junctionResourceId:g}});return await k.create({[h]:j,[i]:e?.id()??a.record.id},c),a};
+diff --git a/node_modules/@adminjs/relations/lib/actions/many-to-many/delete-relation.handler.js b/node_modules/@adminjs/relations/lib/actions/many-to-many/delete-relation.handler.js
+index 08044a2..6fecd45 100644
+--- a/node_modules/@adminjs/relations/lib/actions/many-to-many/delete-relation.handler.js
++++ b/node_modules/@adminjs/relations/lib/actions/many-to-many/delete-relation.handler.js
+@@ -1 +1 @@
+-import{AppError,Filter}from"adminjs";import{Messages}from"../../index.js";export const deleteRelationHandler=a=>async(b,c,d)=>{const{record:e,_admin:f,resource:g}=d,{relations:h}=a,i=b.query??{},{relation:j,targetRecordId:k}=i;if(!j||!k||!e)return{record:e?.toJSON?.(d.currentAdmin),notice:{type:"error",message:Messages.QueryParamsMissing,resourceId:g.id()}};const l=h[j],{junction:m}=l;if(!m)throw new AppError(Messages.JunctionMissing);const n=f.findResource(m.throughResourceId);if(!n)throw new AppError(Messages.JunctionResourceMissing,{junctionResourceId:m.throughResourceId},{options:{junctionResourceId:m.throughResourceId}});const[o]=await n.find(new Filter({[m.inverseJoinKey]:k,[m.joinKey]:e.id()},n),{limit:1,offset:0,sort:{sortBy:m.joinKey,direction:"desc"}});if(!o)throw new AppError(Messages.JunctionRecordMissing);return await n.delete(o.id()),{record:e.toJSON(d.currentAdmin),notice:{type:"success",message:Messages.RelationSuccessfullyDeleted,resourceId:g.id()}}};
+\ No newline at end of file
++import{AppError,Filter}from"adminjs";import{Messages}from"../../index.js";export const deleteRelationHandler=a=>async(b,c,d)=>{const{record:e,_admin:f,resource:g}=d,{relations:h}=a,i=b.query??{},{relation:j,targetRecordId:k}=i;if(!j||!k||!e)return{record:e?.toJSON?.(d.currentAdmin),notice:{type:"error",message:Messages.QueryParamsMissing,resourceId:g.id()}};const l=h[j],{junction:m}=l;if(!m)throw new AppError(Messages.JunctionMissing);const n=f.findResource(m.throughResourceId);if(!n)throw new AppError(Messages.JunctionResourceMissing,{junctionResourceId:m.throughResourceId},{options:{junctionResourceId:m.throughResourceId}});const[o]=await n.find(new Filter({[m.inverseJoinKey]:k,[m.joinKey]:e.id()},n),{limit:1,offset:0,sort:{sortBy:m.joinKey,direction:"desc"}},d);if(!o)throw new AppError(Messages.JunctionRecordMissing);return await n.delete(o.id(),d),{record:e.toJSON(d.currentAdmin),notice:{type:"success",message:Messages.RelationSuccessfullyDeleted,resourceId:g.id()}}};
+diff --git a/node_modules/@adminjs/relations/lib/actions/many-to-many/many-to-many.handler.js b/node_modules/@adminjs/relations/lib/actions/many-to-many/many-to-many.handler.js
+index fa1d07d..8b4cd7a 100644
+--- a/node_modules/@adminjs/relations/lib/actions/many-to-many/many-to-many.handler.js
++++ b/node_modules/@adminjs/relations/lib/actions/many-to-many/many-to-many.handler.js
+@@ -1,4 +1,52 @@
+-import{AppError,Filter,populator}from"adminjs";import{Messages}from"../../constants/messages.js";export const manyToManyHandler=async(a,b,c={},d)=>{const{relation:e,targetResource:f}=b,{sortBy:g,direction:h,perPage:i=d._admin.options.settings?.defaultPerPage||10,page:j=1}=c,{junction:k}=e;if(!k)throw new Error(Messages.JunctionMissing);if(!k.throughResourceId)throw new AppError(Messages.JunctionResourceIdMissing);const l=d._admin.findResource(k?.throughResourceId);if(!l)throw new AppError(Messages.JunctionResourceMissing,{junctionResourceId:k.throughResourceId},{options:{junctionResourceId:k.throughResourceId}});const m=new Filter({[k.joinKey]:a},l),n={sortBy:k.inverseJoinKey,direction:"desc"};let o=n;"prisma"===l.databaseName()&&g&&(o={sortBy:`${k.inverseJoinKey}.${g}`,direction:h||"desc"});const p=await l.find(m,{limit:i,offset:(j-1)*i,sort:o},d),q=await l.count(m,d),r=p.map(a=>a.params[k.inverseJoinKey]),s=r.filter(a=>"undefined"!=typeof a&&null!==a),t=await f.findMany(s),u=r.map(a=>t.find(b=>b.id()===a)).filter(Boolean),v=await populator(u,d);// This is to ensure we keep the correct ordering, some DBMS do not guarantee the order will be intact in IN(...) queries
+-return d.records=v,{meta:{total:q,perPage:i,page:j,sortBy:o.sortBy,direction:h||"desc"},records:v.map(a=>a.toJSON(d.currentAdmin)),// Note: Returning owner record as "record" is a workaround so that "record" type action
++import { AppError, Filter, populator } from 'adminjs';
++import { Messages } from '../../constants/messages.js';
++
++export const manyToManyHandler = async (a, b, c = {}, d) => {
++  const {
++    relation: e,
++    targetResource: f,
++  } = b, {
++    sortBy: g,
++    direction: h,
++    perPage: i = d._admin.options.settings?.defaultPerPage || 10,
++    page: j = 1,
++  } = c, { junction: k } = e;
++  if (!k) throw new Error(Messages.JunctionMissing);
++  if (!k.throughResourceId) throw new AppError(Messages.JunctionResourceIdMissing);
++  const l = d._admin.findResource(k?.throughResourceId);
++  if (!l) throw new AppError(Messages.JunctionResourceMissing, { junctionResourceId: k.throughResourceId }, { options: { junctionResourceId: k.throughResourceId } });
++  const m = new Filter({ [k.joinKey]: a }, l),
++    n = {
++      sortBy: k.inverseJoinKey,
++      direction: 'desc',
++    };
++  let o = n;
++  'prisma' === l.databaseName() && g && (o = {
++    sortBy: `${k.inverseJoinKey}.${g}`,
++    direction: h || 'desc',
++  });
++  const p = await l.find(m, {
++      limit: i,
++      offset: (j - 1) * i,
++      sort: o,
++    }, d),
++    q = await l.count(m, d),
++    r = p.map(a => a.params[k.inverseJoinKey]),
++    s = r.filter(a => 'undefined' != typeof a && null !== a),
++    t = await f.findMany(s, d),
++    u = r.map(a => t.find(b => b.id() === a))
++      .filter(Boolean),
++    v = await populator(u, d);// This is to ensure we keep the correct ordering, some DBMS do not guarantee the order will be intact in IN(...) queries
++  return d.records = v, {
++    meta: {
++      total: q,
++      perPage: i,
++      page: j,
++      sortBy: o.sortBy,
++      direction: h || 'desc',
++    },
++    records: v.map(a => a.toJSON(d.currentAdmin)),// Note: Returning owner record as "record" is a workaround so that "record" type action
+ // doesn't throw an error about "record" being required
+-record:d.record?.toJSON(d.currentAdmin)}};
+\ No newline at end of file
++    record: d.record?.toJSON(d.currentAdmin),
++  };
++};
+diff --git a/node_modules/@adminjs/relations/lib/components/many-to-many/RelationRecordInListActions.js b/node_modules/@adminjs/relations/lib/components/many-to-many/RelationRecordInListActions.js
+index d9facfa..b2da348 100644
+--- a/node_modules/@adminjs/relations/lib/components/many-to-many/RelationRecordInListActions.js
++++ b/node_modules/@adminjs/relations/lib/components/many-to-many/RelationRecordInListActions.js
+@@ -1 +1,139 @@
+-import{Box,Button,Icon,Modal}from"@adminjs/design-system";import{ActionButton,ApiClient,useNotice,useTranslation}from"adminjs";import React,{useState}from"react";import{Actions,Labels}from"../../constants/messages.js";import{useRelationConfig}from"../../providers/RelationConfigProvider.js";import{useRedirectUrl}from"../shared/useRedirectUrl.js";const api=new ApiClient;export const RelationRecordInListActions=a=>{const{record:{recordActions:b,id:c},resource:{id:d}}=a,[e,f]=useState(!1),{ownerRecord:g,ownerResource:h,relation:i,relations:j,refresh:k}=useRelationConfig(),{deleteOptions:{enableDeleteRelation:l,enableDeleteRelatedRecord:m}={enableDeleteRelatedRecord:!0,enableDeleteRelation:!0}}=j[i],n=useNotice(),{ta:o,tl:p}=useTranslation(),q=useRedirectUrl(),r=(a=!1)=>{a&&k(),f(!1)},s=async()=>{const a=await api.recordAction({resourceId:h.id,actionName:"deleteRelation",recordId:g.id,params:{targetRecordId:c,relation:i}}),{data:b}=a;return b},t=async()=>{const a=await api.recordAction({resourceId:d,actionName:"delete",recordId:c}),{data:b}=a;return b},u=[],v={variant:"outlined",label:o(Actions.RemoveRelation,d),onClick:async()=>{const a=await s();r(!0),z(a)}},w={variant:"outlined",label:o(Actions.RemoveRecord,d),color:"danger",onClick:async()=>{let a=await s();const{notice:b}=a;r(!0),b&&"success"===b.type&&(a=await t(),z(a))}},x=g.recordActions.find(a=>"deleteRelation"===a.name);l&&x&&u.push(v);const y=b.find(a=>"delete"===a.name);m&&y&&u.push(w);const z=a=>{const{notice:b}=a;b&&n(b)},A={title:p(Labels.DeleteRelationHeader),onOverlayClick:r,onClose:r,buttons:u},B={show:"Eye",edit:"Edit2",delete:"Trash2"},C=b.filter(a=>"delete"!==a.name);return/*#__PURE__*/React.createElement(Box,{flex:!0},C.map(a=>/*#__PURE__*/React.createElement(ActionButton,{key:a.name,action:a,resourceId:d,recordId:c,queryParams:{redirectUrl:q}},/*#__PURE__*/React.createElement(Button,{size:"icon",rounded:!0,color:a.variant},/*#__PURE__*/React.createElement(Icon,{icon:B[a.name]})))),u.length&&/*#__PURE__*/React.createElement(React.Fragment,null,e&&/*#__PURE__*/React.createElement(Modal,A),/*#__PURE__*/React.createElement(Button,{size:"icon",rounded:!0,color:"danger",onClick:()=>f(!0)},/*#__PURE__*/React.createElement(Icon,{icon:B["delete"]}))))};
+\ No newline at end of file
++import { Box, Button, Icon, Modal } from "@adminjs/design-system";
++import { ActionButton, ApiClient, useNotice, useTranslation } from "adminjs";
++import React, { useState } from "react";
++import { Actions, Labels } from "../../constants/messages.js";
++import { useRelationConfig } from "../../providers/RelationConfigProvider.js";
++import { useRedirectUrl } from "../shared/useRedirectUrl.js";
++
++// Initialize API client
++const api = new ApiClient();
++
++/**
++ * Component to render action buttons for a record within a list, including modals for delete actions.
++ * @param {object} props - Contains record and resource information
++ */
++export const RelationRecordInListActions = props => {
++  const {
++    record: { recordActions, id: recordId },
++    resource: { id: resourceId }
++  } = props;
++  const [isModalVisible, setModalVisible] = useState(false);
++
++  // Retrieve relation configuration and notice hook
++  const {
++    ownerRecord,
++    ownerResource,
++    relation,
++    relations,
++    refresh
++  } = useRelationConfig();
++
++  const {
++    deleteOptions: {
++      enableDeleteRelation,
++      enableDeleteRelatedRecord
++    } = { enableDeleteRelatedRecord: true, enableDeleteRelation: true }
++  } = relations[relation];
++
++  const notice = useNotice();
++  const { ta: translateAction, tl: translateLabel } = useTranslation();
++  const redirectUrl = useRedirectUrl();
++
++  // Handlers for modal visibility and refresh
++  const handleCloseModal = (shouldRefresh = false) => {
++    if (shouldRefresh) refresh();
++    setModalVisible(false);
++  };
++
++  // API action handlers
++  const handleDeleteRelation = async () => {
++    const response = await api.recordAction({
++      resourceId: ownerResource.id,
++      actionName: "deleteRelation",
++      recordId: ownerRecord.id,
++      params: { targetRecordId: recordId, relation }
++    });
++    return response.data;
++  };
++
++  const handleDeleteRecord = async () => {
++    const relationResponse = await handleDeleteRelation();
++    if (relationResponse.notice && relationResponse.notice.type === "success") {
++      const recordResponse = await api.recordAction({
++        resourceId,
++        actionName: "delete",
++        recordId
++      });
++      displayNotice(recordResponse);
++      handleCloseModal(true);
++    }
++  };
++
++  // Display notice from the response
++  const displayNotice = response => {
++    if (response?.notice) {
++      notice(response.notice);
++    }
++  };
++
++  // Prepare action buttons based on configurations and permissions
++  const buttons = [];
++  if (enableDeleteRelation && recordActions.find(action => action.name === "deleteRelation")) {
++    buttons.push({
++      variant: "outlined",
++      label: translateAction(Actions.RemoveRelation, resourceId),
++      onClick: async () => {
++        const actionResult = await handleDeleteRelation();
++        handleCloseModal(true);
++        displayNotice(actionResult);
++      }
++    });
++  }
++
++  if (enableDeleteRelatedRecord && recordActions.find(action => action.name === "delete")) {
++    buttons.push({
++      variant: "outlined",
++      label: translateAction(Actions.RemoveRecord, resourceId),
++      color: "danger",
++      onClick: async () => {
++        const actionResult = await handleDeleteRecord();
++        displayNotice(actionResult);
++      }
++    });
++  }
++
++  // Modal configuration
++  const modalProps = {
++    title: translateLabel(Labels.DeleteRelationHeader),
++    onOverlayClick: handleCloseModal,
++    onClose: handleCloseModal,
++    buttons
++  };
++
++  // Icons for action buttons
++  const icons = { show: "Eye", edit: "Edit2", delete: "Trash2" };
++  const nonDeleteActions = recordActions.filter(action => action.name !== "delete");
++
++  // Render the component
++  return /*#__PURE__*/React.createElement(Box, { flex: true },
++    nonDeleteActions.map(action => /*#__PURE__*/React.createElement(ActionButton, {
++      key: action.name,
++      action,
++      resourceId,
++      recordId,
++      queryParams: { redirectUrl }
++    }, /*#__PURE__*/React.createElement(Button, {
++      size: "icon",
++      rounded: true,
++      color: action.variant
++    }, /*#__PURE__*/React.createElement(Icon, { icon: icons[action.name] })))),
++    buttons.length && /*#__PURE__*/React.createElement(React.Fragment, null,
++      isModalVisible && /*#__PURE__*/React.createElement(Modal, modalProps),
++      /*#__PURE__*/React.createElement(Button, {
++        size: "icon",
++        rounded: true,
++        color: "danger",
++        onClick: () => setModalVisible(true)
++      }, /*#__PURE__*/React.createElement(Icon, { icon: icons["delete"] })))
++  );
++};
+diff --git a/node_modules/@adminjs/relations/lib/relations.feature.js b/node_modules/@adminjs/relations/lib/relations.feature.js
+index c2c8654..78b7569 100644
+--- a/node_modules/@adminjs/relations/lib/relations.feature.js
++++ b/node_modules/@adminjs/relations/lib/relations.feature.js
+@@ -1,4 +1,27 @@
+-import{buildFeature}from"adminjs";import merge from"lodash/merge.js";import{LicenseStatusEnum,verifyLicense,trackLicenseUsage}from"@adminjs/license";import{addManyToManyRelationHandler,findRelationHandler,redirectToOwningResourceDetails,deleteRelationHandler,assignManyToManyRelation}from"./actions/index.js";import{emptyLocale,featureTranslations}from"./translations.js";import{bundleComponent}from"./utils/index.js";const bundleRelationsComponents=a=>({show:bundleComponent(a,"RelationsShowPropertyComponent"),edit:bundleComponent(a,"RelationsEditPropertyComponent"),list:bundleComponent(a,"RelationsListPropertyComponent")}),PKG="@adminjs/relations";let license=null;const trackUsage=a=>{license||(license=a,trackLicenseUsage(license,PKG))};/**
++import { buildFeature } from 'adminjs';
++import merge from 'lodash/merge.js';
++import { LicenseStatusEnum, verifyLicense, trackLicenseUsage } from '@adminjs/license';
++import {
++  addManyToManyRelationHandler,
++  findRelationHandler,
++  redirectToOwningResourceDetails,
++  deleteRelationHandler,
++  assignManyToManyRelation,
++} from './actions/index.js';
++import { emptyLocale, featureTranslations } from './translations.js';
++import { bundleComponent } from './utils/index.js';
++
++const bundleRelationsComponents = a => ({
++    show: bundleComponent(a, 'RelationsShowPropertyComponent'),
++    edit: bundleComponent(a, 'RelationsEditPropertyComponent'),
++    list: bundleComponent(a, 'RelationsListPropertyComponent'),
++  }),
++  PKG = '@adminjs/relations';
++let license = null;
++const trackUsage = a => {
++  license || (license = a, trackLicenseUsage(license, PKG));
++};
++/**
+  * @example
+  * ```
+  * export const createOrganizationResource = (): CreateResourceResult<
+@@ -33,4 +56,62 @@ import{buildFeature}from"adminjs";import merge from"lodash/merge.js";import{Lice
+  *  },
+  *});
+  *```
+- */export const owningRelationSettingsFeature=a=>{var b=Number.MAX_SAFE_INTEGER;const{componentLoader:c,relations:d,propertyKey:f="relations",licenseKey:e}=a,{show:g,edit:h,list:i}=bundleRelationsComponents(c),{status:j,msg:k}=verifyLicense(e,{packageName:PKG});if(j===LicenseStatusEnum.Invalid||j===LicenseStatusEnum.NotFound)throw new Error(k);return trackUsage(e),buildFeature(c=>(c.options.locale=merge(emptyLocale,featureTranslations,c.options.locale),{properties:{[f]:{isVisible:{show:!0,edit:!1,list:!1},type:"string",components:{show:g,edit:h,list:i},props:{relations:d},position:b}},actions:{findRelation:{actionType:"record",isVisible:!1,handler:findRelationHandler(a)},addManyToManyRelation:{actionType:"record",isVisible:!1,handler:addManyToManyRelationHandler(a)},deleteRelation:{actionType:"record",isVisible:!1,handler:deleteRelationHandler(a)}}}))};export const targetRelationSettingsFeature=()=>buildFeature({actions:{edit:{after:[redirectToOwningResourceDetails]},new:{after:[assignManyToManyRelation,redirectToOwningResourceDetails]}}});
+\ No newline at end of file
++ */export const owningRelationSettingsFeature = a => {
++  var b = Number.MAX_SAFE_INTEGER;
++  const {
++    componentLoader: c,
++    relations: d,
++    propertyKey: f = 'relations',
++    licenseKey: e,
++  } = a, {
++    show: g,
++    edit: h,
++    list: i,
++  } = bundleRelationsComponents(c), {
++    status: j,
++    msg: k,
++  } = verifyLicense(e, { packageName: PKG });
++  if (j === LicenseStatusEnum.Invalid || j === LicenseStatusEnum.NotFound) throw new Error(k);
++  return trackUsage(e), buildFeature(c => (c.options.locale = merge(emptyLocale, featureTranslations, c.options.locale), {
++    properties: {
++      [f]: {
++        isVisible: {
++          show: !0,
++          edit: !1,
++          list: !1,
++        },
++        type: 'string',
++        components: {
++          show: g,
++          edit: h,
++          list: i,
++        },
++        props: { relations: d },
++        position: b,
++      },
++    },
++    actions: {
++      findRelation: {
++        actionType: 'record',
++        isVisible: !1,
++        handler: findRelationHandler(a),
++      },
++      addManyToManyRelation: {
++        actionType: 'record',
++        isVisible: !1,
++        handler: addManyToManyRelationHandler(a),
++      },
++      deleteRelation: {
++        actionType: 'record',
++        isVisible: !1,
++        handler: deleteRelationHandler(a),
++      },
++    },
++  }));
++};
++export const targetRelationSettingsFeature = () => buildFeature({
++  actions: {
++    edit: { after: [redirectToOwningResourceDetails] },
++    new: { after: [assignManyToManyRelation, redirectToOwningResourceDetails] },
++  },
++});
+diff --git a/node_modules/@adminjs/relations/lib/translations.js b/node_modules/@adminjs/relations/lib/translations.js
+index e1c65d6..0be6257 100644
+--- a/node_modules/@adminjs/relations/lib/translations.js
++++ b/node_modules/@adminjs/relations/lib/translations.js
+@@ -1 +1 @@
+-import{Messages,Labels,Actions}from"./constants/index.js";const messagesTranslations={[Messages.MissingConfiguration]:"[@adminjs/relations] Missing configuration for one of the relations: {{relationName}}",[Messages.MissingRecordId]:"[@adminjs/relations] \"recordId\" is missing in request's query params",[Messages.InvalidRelationType]:"[@adminjs/relations] Invalid \"type\" for relation. Valid relation types: {{validTypes}}",[Messages.JoinKeyMissing]:"[@adminjs/relations] \"joinKey\" must be defined for \"target\"",[Messages.NoRelationRecordsTitle]:"No related records",[Messages.NoRelationRecords]:"There are no records from \"{{relationName}}\" related with this record",[Messages.JunctionMissing]:"[@adminjs/relations] \"junction\" must be defined for many-to-many relation",[Messages.JunctionResourceIdMissing]:"[@adminjs/relations] \"junction.throughResourceId\" must be defined for many-to-many-relation",[Messages.JunctionResourceMissing]:"[@adminjs/relations] {{junctionResourceId}} resource is missing. Are you sure you have registered it in AdminJS?",[Messages.ChooseItemSubtitle]:"Select an item to add",[Messages.ManyToManyRelationAlreadyExists]:"Given relation already exists.",[Messages.RelationSuccessfullyAdded]:"Relation has been successfully added.",[Messages.RelationSuccessfullyDeleted]:"Relation has been successfully deleted.",[Messages.QueryParamsMissing]:"[@adminjs/relations] Insufficient query parameters. Make sure you do not modify the browser's address bar.",[Messages.JunctionRecordMissing]:"[@adminjs/relations] Could not find a junction record."},labelsTranslations={[Labels.ChooseItemHeader]:"Add existing item",[Labels.DeleteRelationHeader]:"Decide what to delete"},actionsTranslations={[Actions.AddItem]:"Add existing item",[Actions.RemoveRelation]:"Remove relation",[Actions.RemoveRecord]:"Delete record"};export const featureTranslations={translations:{en:{messages:messagesTranslations,labels:labelsTranslations,actions:actionsTranslations}}};export const emptyLocale={language:"en",translations:{}};
+\ No newline at end of file
++import{Messages,Labels,Actions}from"./constants/index.js";const messagesTranslations={[Messages.MissingConfiguration]:"[@adminjs/relations] Missing configuration for one of the relations: {{relationName}}",[Messages.MissingRecordId]:"[@adminjs/relations] \"recordId\" is missing in request's query params",[Messages.InvalidRelationType]:"[@adminjs/relations] Invalid \"type\" for relation. Valid relation types: {{validTypes}}",[Messages.JoinKeyMissing]:"[@adminjs/relations] \"joinKey\" must be defined for \"target\"",[Messages.NoRelationRecordsTitle]:"No related records",[Messages.NoRelationRecords]:"There are no records from \"{{relationName}}\" related with this record",[Messages.JunctionMissing]:"[@adminjs/relations] \"junction\" must be defined for many-to-many relation",[Messages.JunctionResourceIdMissing]:"[@adminjs/relations] \"junction.throughResourceId\" must be defined for many-to-many-relation",[Messages.JunctionResourceMissing]:"[@adminjs/relations] {{junctionResourceId}} resource is missing. Are you sure you have registered it in AdminJS?",[Messages.ChooseItemSubtitle]:"Select an item to add",[Messages.ManyToManyRelationAlreadyExists]:"Given relation already exists.",[Messages.RelationSuccessfullyAdded]:"Relation has been successfully added.",[Messages.RelationSuccessfullyDeleted]:"Relation has been successfully deleted.",[Messages.QueryParamsMissing]:"[@adminjs/relations] Insufficient query parameters. Make sure you do not modify the browser's address bar.",[Messages.JunctionRecordMissing]:"[@adminjs/relations] Could not find a junction record."},labelsTranslations={[Labels.ChooseItemHeader]:"Add existing item",[Labels.DeleteRelationHeader]:"Are you sure you want to delete this?"},actionsTranslations={[Actions.AddItem]:"Add existing item",[Actions.RemoveRelation]:"Remove relation",[Actions.RemoveRecord]:"Delete"};export const featureTranslations={translations:{en:{messages:messagesTranslations,labels:labelsTranslations,actions:actionsTranslations}}};export const emptyLocale={language:"en",translations:{}};
+\ No newline at end of file

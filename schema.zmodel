@@ -1,0 +1,151 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id           String              @id @default(cuid()) @map("id")
+    remoteId     String              @map("remote_id")
+    email        String              @unique @map("email")
+    memberships  Membership[]
+    accessRights DataSourceAccess[]
+    Superuser    Superuser[]
+    admins       OrganizationAdmin[]
+    createdAt    DateTime            @default(now()) @map("created_at")
+    updatedAt    DateTime            @default(now()) @updatedAt @map("updated_at")
+
+    @@allow('all',
+        auth().Superuser?[userId == auth().id]
+    )
+
+    // allow read by org admins only when the user has no associated organizations
+    @@allow('read', auth().admins?[true])
+
+    // access control to be placed in resource logic
+    @@allow('create', auth() != null)
+    @@deny('all', auth() == null)  // No access for unauthenticated users
+
+    @@index([email], type: Hash)
+    @@index([remoteId], type: Hash)
+    @@map("users")
+}
+
+model Superuser {
+    id        String   @id @default(cuid()) @map("id")
+    userId    String   @unique @map("user_id")
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+    // Access control
+    @@allow('all', auth().Superuser?[userId == auth().id]) // Full access for Superusers
+
+    @@map("superusers")
+}
+
+model OrganizationAdmin {
+    id             String       @id @default(cuid()) @map("id")
+    userId         String       @map("user_id")
+    organizationId String       @map("organization_id")
+    user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    createdAt      DateTime     @default(now()) @map("created_at")
+    updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at")
+
+    // Superusers can access all; Admins can access if they're part of the organization
+    @@allow('all', auth().Superuser?[userId == auth().id] || organization.organizationAdmins?[userId == auth().id])
+    @@deny('all', auth() == null) // Deny non-admins
+
+    @@unique([userId, organizationId])
+    @@map("organization_admins")
+}
+
+model Organization {
+    id                  String                @id @default(cuid()) @map("id")
+    name                String                @map("name")
+    members             Membership[]
+    createdAt           DateTime              @default(now()) @map("created_at")
+    updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at")
+    organizationAdmins  OrganizationAdmin[]
+    DataSourceOwnership DataSourceOwnership[]
+
+    // @@allow('read', auth().Superuser?[userId == auth().id] || members?[userId == auth().id])  // Superusers and members can read organization info
+    @@allow('create', auth().Superuser?[userId == auth().id])  // Only Superusers and admins can update/delete
+    @@allow('read,update,delete', auth().Superuser?[userId == auth().id] || organizationAdmins?[userId == auth().id])  // Only Superusers and admins can update/delete
+    @@deny('all', auth() == null)  // Deny unauthenticated users
+
+    @@map("organizations")
+}
+
+model Membership {
+    id             String       @id @default(cuid()) @map("id")
+    userId         String       @map("user_id")
+    organizationId String       @map("organization_id")
+    user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    createdAt      DateTime     @default(now()) @map("created_at")
+    updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at")
+
+    @@allow('all', auth().Superuser?[userId == auth().id] || organization.organizationAdmins?[userId == auth().id])  // Full access for Superuser and members of the same organization
+    @@deny('all', auth() == null)  // Deny unauthenticated users
+
+    @@unique([userId, organizationId])
+    @@map("memberships")
+}
+
+model DataSourceAccess {
+    id           String   @id @default(cuid()) @map("id")
+    dataSourceId Int      @map("data_source_id")
+    userId       String   @map("user_id")
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt    DateTime @default(now()) @map("created_at")
+    updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+    // Superusers or admins of the org access
+    @@allow('all', auth().Superuser?[userId == auth().id])
+    @@allow('all', auth().admins?[organization.DataSourceOwnership?[dataSourceId == dataSourceId]])
+    @@deny('all', auth() == null)  // Deny unauthenticated users
+
+    @@unique([dataSourceId, userId])
+    @@map("data_source_accesses")
+}
+
+model DataSourceOwnership {
+    id             String       @id @default(cuid()) @map("id")
+    dataSourceId   Int          @unique @map("data_source_id")
+    organizationId String       @map("organization_id")
+    organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    createdAt      DateTime     @default(now()) @map("created_at")
+    updatedAt      DateTime     @updatedAt @map("updated_at")
+
+    // Full access for Superusers and members of the same organization
+    @@allow('read', organization.organizationAdmins?[userId == auth().id])
+    @@allow('all', auth().Superuser?[userId == auth().id])
+    @@deny('all', auth() == null)  // Deny unauthenticated users
+
+    @@index([dataSourceId], type: Hash)
+    @@index([organizationId], type: Hash)
+    @@map("data_source_ownership")
+}
+
+model AuditLog {
+    id          String   @id @default(cuid()) @map("id")
+    recordId    String   @map("record_id")
+    recordTitle String?  @map("record_title") @db.VarChar(128)
+    difference  Json?    @map("difference") @db.Json
+    action      String   @map("action") @db.VarChar(128)
+    resource    String   @map("resource") @db.VarChar(128)
+    userId      String   @map("user_id") @db.VarChar(128)
+    createdAt   DateTime @default(now()) @map("created_at")
+    updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+    @@allow('create, read', auth().Superuser?[userId == auth().id] || auth().admins?[true])  // Superusers and Org admins can access everything
+    @@deny('all', auth() == null)  // Deny unauthorized actions on audit logs
+
+    @@index([createdAt], type: BTree)
+    @@map("audit_log")
+}

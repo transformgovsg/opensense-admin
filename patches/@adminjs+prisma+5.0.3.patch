@@ -1,0 +1,67 @@
+diff --git a/node_modules/@adminjs/prisma/lib/Resource.d.ts b/node_modules/@adminjs/prisma/lib/Resource.d.ts
+index 1afa38b..1562c7b 100644
+--- a/node_modules/@adminjs/prisma/lib/Resource.d.ts
++++ b/node_modules/@adminjs/prisma/lib/Resource.d.ts
+@@ -3,12 +3,12 @@ import { PrismaClient } from '@prisma/client';
+ import { DMMF } from '@prisma/client/runtime/library.js';
+ import { Property } from './Property.js';
+ export declare class Resource extends BaseResource {
+-    private client;
+-    private model;
+-    private enums;
+-    private manager;
+-    private propertiesObject;
+-    private idProperty;
++    protected client;
++    protected model;
++    protected enums;
++    protected manager;
++    protected propertiesObject;
++    protected idProperty;
+     constructor(args: {
+         model: DMMF.Model;
+         client: PrismaClient;
+@@ -29,7 +29,7 @@ export declare class Resource extends BaseResource {
+             direction?: 'asc' | 'desc';
+         };
+     }): Promise<Array<BaseRecord>>;
+-    private buildSortBy;
++    protected buildSortBy;
+     findOne(id: string | number): Promise<BaseRecord | null>;
+     findMany(ids: Array<string | number>): Promise<Array<BaseRecord>>;
+     create(params: Record<string, any>): Promise<Record<string, any>>;
+@@ -39,7 +39,7 @@ export declare class Resource extends BaseResource {
+         model: DMMF.Model;
+         client: PrismaClient;
+     }): boolean;
+-    private prepareProperties;
+-    private prepareParams;
+-    private prepareReturnValues;
++    protected prepareProperties;
++    protected prepareParams;
++    protected prepareReturnValues;
+ }
+diff --git a/node_modules/@adminjs/prisma/lib/index.d.ts b/node_modules/@adminjs/prisma/lib/index.d.ts
+index 35316c6..8ab40ce 100644
+--- a/node_modules/@adminjs/prisma/lib/index.d.ts
++++ b/node_modules/@adminjs/prisma/lib/index.d.ts
+@@ -102,6 +102,7 @@ import { Database } from './Database.js';
+ import { Resource } from './Resource.js';
+ export { Resource } from './Resource.js';
+ export { Database } from './Database.js';
++export { Property } from './Property.js';
+ export { convertParam, convertFilter } from './utils/converters.js';
+ export { getModelByName } from './utils/get-model-by-name.js';
+ export { getEnums } from './utils/get-enums.js';
+diff --git a/node_modules/@adminjs/prisma/lib/index.js b/node_modules/@adminjs/prisma/lib/index.js
+index 4011dec..b6167a3 100644
+--- a/node_modules/@adminjs/prisma/lib/index.js
++++ b/node_modules/@adminjs/prisma/lib/index.js
+@@ -102,6 +102,7 @@ import { Database } from './Database.js';
+ import { Resource } from './Resource.js';
+ export { Resource } from './Resource.js';
+ export { Database } from './Database.js';
++export { Property } from './Property.js';
+ export { convertParam, convertFilter } from './utils/converters.js';
+ export { getModelByName } from './utils/get-model-by-name.js';
+ export { getEnums } from './utils/get-enums.js';

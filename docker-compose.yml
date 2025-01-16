@@ -1,0 +1,34 @@
+services:
+  sense_admin:
+    image: 975050287646.dkr.ecr.ap-southeast-1.amazonaws.com/ace-healthcare/data-copilot/admin:${IMAGE_TAG?:IMAGE_TAG}
+    container_name: sense_admin
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8051:8051"
+    env_file:
+      - .env
+  sense_admin_db:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - sense-admin-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - sense-admin-cache:/data
+
+volumes:
+  sense-admin-data:
+    driver: local
+  sense-admin-cache:
+    driver: local
+  
